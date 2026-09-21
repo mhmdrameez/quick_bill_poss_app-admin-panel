@@ -19,13 +19,15 @@ export const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children })
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30">
+      <div className="fixed inset-0 z-50 w-screen h-screen flex flex-col items-center justify-center bg-slate-950 text-white">
+        <div className="flex flex-col items-center justify-center text-center p-6">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-600/20 flex items-center justify-center border border-indigo-500/30 shadow-xl shadow-indigo-600/20">
             <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
           </div>
+          <p className="mt-4 text-sm text-slate-400 font-medium tracking-wide">
+            Connecting to Quick Bill POS...
+          </p>
         </div>
-        <p className="mt-4 text-sm text-slate-400 font-medium">Connecting to Quick Bill POS...</p>
       </div>
     );
   }
