@@ -5,6 +5,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   User as FirebaseUser,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   setPersistence,
@@ -68,10 +70,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    try {
-      setPersistence(auth, browserLocalPersistence).catch(() => {});
-      const unsubscribe = onAuthStateChanged(auth, (fbUser: FirebaseUser | null) => {
-        if (fbUser) {
+    // Set browser persistence
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+    // Check for redirect result (crucial for mobile browser sign-ins)
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          const fbUser = result.user;
           setUser({
             uid: fbUser.uid,
             email: fbUser.email,
@@ -79,20 +85,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             photoURL: fbUser.photoURL,
             isDemo: false,
           });
-        } else {
-          // If no fbUser and no demo user
-          if (!localStorage.getItem('quickbill_demo_user')) {
-            setUser(null);
-          }
+          setLoading(false);
         }
-        setLoading(false);
+      })
+      .catch((err) => {
+        console.warn('Redirect auth result check:', err);
       });
 
-      return () => unsubscribe();
-    } catch (err) {
-      console.warn('Auth listener error:', err);
+    const unsubscribe = onAuthStateChanged(auth, (fbUser: FirebaseUser | null) => {
+      if (fbUser) {
+        setUser({
+          uid: fbUser.uid,
+          email: fbUser.email,
+          displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Merchant Admin',
+          photoURL: fbUser.photoURL,
+          isDemo: false,
+        });
+      } else {
+        if (!localStorage.getItem('quickbill_demo_user')) {
+          setUser(null);
+        }
+      }
       setLoading(false);
-    }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const signInWithGoogle = async () => {
@@ -102,6 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       localStorage.removeItem('quickbill_demo_user');
+      
+      // Attempt popup sign-in first
       const result = await signInWithPopup(auth, googleProvider);
       const fbUser = result.user;
       setUser({
@@ -112,7 +131,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isDemo: false,
       });
     } catch (error: any) {
-      console.error('Google Sign-In failed:', error);
+      console.warn('Popup sign in failed, checking redirect fallback:', error);
+      
+      // If mobile browser blocks popup or storage is partitioned (missing initial state)
+      if (
+        error.code === 'auth/popup-blocked' ||
+        error.code === 'auth/popup-closed-by-user' ||
+        error.code === 'auth/missing-initial-state' ||
+        error.message?.includes('missing initial state') ||
+        error.message?.includes('storage-partitioned')
+      ) {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectError) {
+          console.error('Redirect sign-in also failed:', redirectError);
+          throw redirectError;
+        }
+      }
+      
       throw error;
     } finally {
       setLoading(false);
