@@ -1,0 +1,9 @@
+---
+// src/pages/orders.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import OrdersView from '../views/OrdersView';
+---
+
+<BaseLayout title="Held Orders • Quick Bill POS Admin">
+  <OrdersView client:only="react" />
+</BaseLayout>

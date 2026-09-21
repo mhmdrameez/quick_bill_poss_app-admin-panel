@@ -1,0 +1,9 @@
+---
+// src/pages/products.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductsView from '../views/ProductsView';
+---
+
+<BaseLayout title="Product Catalog • Quick Bill POS Admin">
+  <ProductsView client:only="react" />
+</BaseLayout>

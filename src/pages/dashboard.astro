@@ -1,0 +1,9 @@
+---
+// src/pages/dashboard.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DashboardView from '../views/DashboardView';
+---
+
+<BaseLayout title="Dashboard • Quick Bill POS Admin">
+  <DashboardView client:only="react" />
+</BaseLayout>

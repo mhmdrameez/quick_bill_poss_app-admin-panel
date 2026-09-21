@@ -1,0 +1,9 @@
+---
+// src/pages/coupons.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CouponsView from '../views/CouponsView';
+---
+
+<BaseLayout title="Promotions & Coupons • Quick Bill POS Admin">
+  <CouponsView client:only="react" />
+</BaseLayout>

@@ -1,0 +1,9 @@
+---
+// src/pages/login.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LoginView from '../views/LoginView';
+---
+
+<BaseLayout title="Login • Quick Bill POS Admin">
+  <LoginView client:only="react" />
+</BaseLayout>

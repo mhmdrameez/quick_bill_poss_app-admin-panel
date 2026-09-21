@@ -1,0 +1,9 @@
+---
+// src/pages/analytics.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AnalyticsView from '../views/AnalyticsView';
+---
+
+<BaseLayout title="Analytics • Quick Bill POS Admin">
+  <AnalyticsView client:only="react" />
+</BaseLayout>

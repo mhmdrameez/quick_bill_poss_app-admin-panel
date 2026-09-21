@@ -1,0 +1,9 @@
+---
+// src/pages/index.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import RedirectRoot from '../components/auth/RedirectRoot';
+---
+
+<BaseLayout title="Quick Bill POS - Admin Command">
+  <RedirectRoot client:only="react" />
+</BaseLayout>

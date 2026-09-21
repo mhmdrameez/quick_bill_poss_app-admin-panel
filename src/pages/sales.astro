@@ -1,0 +1,9 @@
+---
+// src/pages/sales.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SalesView from '../views/SalesView';
+---
+
+<BaseLayout title="Transactions • Quick Bill POS Admin">
+  <SalesView client:only="react" />
+</BaseLayout>

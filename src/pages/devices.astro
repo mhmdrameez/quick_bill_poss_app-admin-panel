@@ -1,0 +1,9 @@
+---
+// src/pages/devices.astro
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DevicesView from '../views/DevicesView';
+---
+
+<BaseLayout title="POS Registers • Quick Bill POS Admin">
+  <DevicesView client:only="react" />
+</BaseLayout>
