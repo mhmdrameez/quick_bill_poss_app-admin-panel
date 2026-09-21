@@ -207,9 +207,10 @@ export function useProducts() {
         return newItems.length;
       }
 
-      const batch = writeBatch(db);
+      const firestore = db;
+      const batch = writeBatch(firestore);
       newItems.forEach((p) => {
-        const ref = doc(db, `users/${user.uid}/products/${p.id}`);
+        const ref = doc(firestore, `users/${user.uid}/products/${p.id}`);
         batch.set(ref, p);
       });
 

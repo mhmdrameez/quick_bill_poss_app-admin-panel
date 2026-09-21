@@ -12,8 +12,12 @@ export const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children })
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user && pathname !== '/login') {
-      router.push('/login');
+    if (!loading) {
+      if (!user && pathname !== '/login') {
+        router.replace('/login');
+      } else if (user && pathname === '/login') {
+        router.replace('/dashboard');
+      }
     }
   }, [user, loading, router, pathname]);
 
@@ -32,8 +36,23 @@ export const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children })
     );
   }
 
+  // If not logged in and not on login page, wait for redirect to /login
   if (!user && pathname !== '/login') {
     return null;
+  }
+
+  // If already logged in and on login page, show redirecting state and do not render login form
+  if (user && pathname === '/login') {
+    return (
+      <div className="fixed inset-0 z-50 w-screen h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-400 p-8">
+        <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mb-3 shadow-lg shadow-indigo-600/10">
+          <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+        </div>
+        <p className="text-sm font-medium text-slate-400 tracking-wide">
+          Already signed in. Redirecting to Dashboard...
+        </p>
+      </div>
+    );
   }
 
   return <>{children}</>;

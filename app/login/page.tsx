@@ -1,24 +1,44 @@
 // app/login/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
-import { Zap, RefreshCw, Lock, AlertCircle } from 'lucide-react';
+import { Zap, RefreshCw, Lock, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signInWithGoogle } = useAuth();
+  const { user, signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-redirect if already signed in
+  useEffect(() => {
+    if (user) {
+      router.replace('/dashboard');
+    }
+  }, [user, router]);
+
+  if (user) {
+    return (
+      <div className="min-h-screen w-full flex flex-col justify-center items-center p-6 bg-slate-950 text-slate-400">
+        <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mb-3 shadow-lg shadow-indigo-600/10">
+          <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+        </div>
+        <p className="text-sm font-medium text-slate-400 tracking-wide">
+          Already signed in. Redirecting to Dashboard...
+        </p>
+      </div>
+    );
+  }
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
     try {
       await signInWithGoogle();
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } catch (err: any) {
       console.error(err);
       setError(
