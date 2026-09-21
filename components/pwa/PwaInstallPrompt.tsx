@@ -10,8 +10,14 @@ export const PwaInstallPrompt: React.FC = () => {
   const [isDismissed, setIsDismissed] = useState<boolean>(false);
 
   useEffect(() => {
-    // Register Service Worker
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    // Register Service Worker safely (only on HTTPS or localhost)
+    if (
+      typeof window !== 'undefined' &&
+      'serviceWorker' in navigator &&
+      (window.location.protocol === 'https:' ||
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1')
+    ) {
       navigator.serviceWorker
         .register('/sw.js')
         .then((reg) => {
