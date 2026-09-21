@@ -1,9 +1,7 @@
-// context/AuthContext.tsx
-'use client';
-
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import {
-  User as FirebaseUser,
+  type User as FirebaseUser,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
@@ -14,7 +12,7 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '@/lib/firebase';
 
-interface AdminUser {
+export interface AdminUser {
   uid: string;
   email: string | null;
   displayName: string | null;
@@ -33,7 +31,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: false,
+  loading: true,
   isConfigured: false,
   signInWithGoogle: async () => {},
   signInDemoMode: () => {},
@@ -49,7 +47,7 @@ const DEMO_USER: AdminUser = {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Synchronous cache read for instantaneous 0ms perceived loading
+  // Synchronous cache read for instantaneous 0ms perceived loading if user was already cached
   const [user, setUser] = useState<AdminUser | null>(() => {
     if (typeof window !== 'undefined') {
       const demo = localStorage.getItem('quickbill_demo_user');
@@ -72,26 +70,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   });
 
+  // Start loading = true unless user is already cached in localStorage
   const [loading, setLoading] = useState<boolean>(() => {
-    // If we already have a cached session or demo user, do NOT block with full-screen loader
     if (typeof window !== 'undefined') {
       if (localStorage.getItem('quickbill_demo_user') || localStorage.getItem('quickbill_cached_auth_user')) {
         return false;
       }
     }
-    return false; // Fast non-blocking mount
+    return true; // Must wait for Firebase auth to initialize on cold mobile/app load
   });
 
   const initializedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (initializedRef.current || !auth) return;
+    if (initializedRef.current) return;
     initializedRef.current = true;
+
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-      // Background redirect check (non-blocking)
+      // 1. Process Google OAuth redirect results (Essential for Mobile App & WebViews)
       getRedirectResult(auth)
         .then((result) => {
           if (result && result.user) {
@@ -105,13 +108,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             };
             setUser(userData);
             localStorage.setItem('quickbill_cached_auth_user', JSON.stringify(userData));
+            setLoading(false);
+
+            if (typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname === '/')) {
+              window.location.replace('/dashboard');
+            }
           }
         })
         .catch((err) => {
-          console.warn('Redirect auth notice:', err);
+          console.warn('Redirect auth result notice:', err);
         });
 
-      // Real-time auth state listener
+      // 2. Real-time auth state listener (Restores session from IndexedDB)
       const unsubscribe = onAuthStateChanged(auth, (fbUser: FirebaseUser | null) => {
         if (fbUser) {
           const userData: AdminUser = {
@@ -146,7 +154,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       localStorage.removeItem('quickbill_demo_user');
-      
+
+      // Detect mobile / webview environment
+      const isMobileOrApp =
+        typeof navigator !== 'undefined' &&
+        (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+          (window as any).navigator?.standalone ||
+          window.matchMedia('(display-mode: standalone)').matches);
+
+      if (isMobileOrApp) {
+        // Mobile / App WebView: use redirect to avoid popup blockers and storage partitioning issues
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+
+      // Desktop PC: use popup for fast, instant, zero-reload experience
       const result = await signInWithPopup(auth, googleProvider);
       const fbUser = result.user;
       const userData: AdminUser = {
@@ -158,20 +180,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       setUser(userData);
       localStorage.setItem('quickbill_cached_auth_user', JSON.stringify(userData));
+      if (typeof window !== 'undefined') {
+        window.location.replace('/dashboard');
+      }
     } catch (error: any) {
-      console.warn('Popup sign in failed, trying redirect:', error);
-      
+      console.warn('Popup sign in failed, falling back to redirect:', error);
+
       if (
         error.code === 'auth/popup-blocked' ||
         error.code === 'auth/popup-closed-by-user' ||
         error.code === 'auth/missing-initial-state' ||
         error.message?.includes('missing initial state') ||
-        error.message?.includes('storage-partitioned')
+        error.message?.includes('storage-partitioned') ||
+        error.code === 'auth/cancelled-popup-request'
       ) {
         await signInWithRedirect(auth, googleProvider);
         return;
       }
-      
+
       throw error;
     } finally {
       setLoading(false);
@@ -182,6 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(DEMO_USER);
     if (typeof window !== 'undefined') {
       localStorage.setItem('quickbill_demo_user', JSON.stringify(DEMO_USER));
+      window.location.replace('/dashboard');
     }
   };
 
@@ -196,6 +223,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await firebaseSignOut(auth);
       }
       setUser(null);
+      if (typeof window !== 'undefined') {
+        window.location.replace('/login');
+      }
     } catch (error) {
       console.error('Sign-out error:', error);
     } finally {
