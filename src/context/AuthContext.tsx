@@ -31,7 +31,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: true,
+  loading: false,
   isConfigured: false,
   signInWithGoogle: async () => {},
   signInDemoMode: () => {},
@@ -46,38 +46,27 @@ const DEMO_USER: AdminUser = {
   isDemo: true,
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Synchronous cache read for instantaneous 0ms perceived loading if user was already cached
-  const [user, setUser] = useState<AdminUser | null>(() => {
-    if (typeof window !== 'undefined') {
-      const demo = localStorage.getItem('quickbill_demo_user');
-      if (demo) {
-        try {
-          return JSON.parse(demo);
-        } catch {
-          localStorage.removeItem('quickbill_demo_user');
-        }
-      }
-      const cached = localStorage.getItem('quickbill_cached_auth_user');
-      if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch {
-          localStorage.removeItem('quickbill_cached_auth_user');
-        }
-      }
-    }
-    return null;
-  });
+const getCachedUser = (): AdminUser | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const demo = localStorage.getItem('quickbill_demo_user');
+    if (demo) return JSON.parse(demo);
+    const cached = localStorage.getItem('quickbill_cached_auth_user');
+    if (cached) return JSON.parse(cached);
+  } catch {
+    // ignore parse errors
+  }
+  return null;
+};
 
-  // Start loading = true unless user is already cached in localStorage
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Synchronous cache read for instantaneous 0ms perceived loading
+  const [user, setUser] = useState<AdminUser | null>(() => getCachedUser());
+
+  // If we already have a cached session or demo user, do NOT block with full-screen loader
   const [loading, setLoading] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      if (localStorage.getItem('quickbill_demo_user') || localStorage.getItem('quickbill_cached_auth_user')) {
-        return false;
-      }
-    }
-    return true; // Must wait for Firebase auth to initialize on cold mobile/app load
+    const cached = getCachedUser();
+    return cached === null;
   });
 
   const initializedRef = useRef<boolean>(false);
@@ -94,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-      // 1. Process Google OAuth redirect results (Essential for Mobile App & WebViews)
+      // 1. Process Google OAuth redirect result on Mobile/WebView
       getRedirectResult(auth)
         .then((result) => {
           if (result && result.user) {
@@ -119,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.warn('Redirect auth result notice:', err);
         });
 
-      // 2. Real-time auth state listener (Restores session from IndexedDB)
+      // 2. Real-time auth state listener
       const unsubscribe = onAuthStateChanged(auth, (fbUser: FirebaseUser | null) => {
         if (fbUser) {
           const userData: AdminUser = {
@@ -132,9 +121,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(userData);
           localStorage.setItem('quickbill_cached_auth_user', JSON.stringify(userData));
         } else {
-          if (!localStorage.getItem('quickbill_demo_user')) {
+          // If Firebase reports null, check if we have a demo user or cached user before clearing
+          const currentCached = getCachedUser();
+          if (currentCached) {
+            setUser(currentCached);
+          } else {
             setUser(null);
-            localStorage.removeItem('quickbill_cached_auth_user');
           }
         }
         setLoading(false);
@@ -163,12 +155,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           window.matchMedia('(display-mode: standalone)').matches);
 
       if (isMobileOrApp) {
-        // Mobile / App WebView: use redirect to avoid popup blockers and storage partitioning issues
         await signInWithRedirect(auth, googleProvider);
         return;
       }
 
-      // Desktop PC: use popup for fast, instant, zero-reload experience
+      // Desktop PC
       const result = await signInWithPopup(auth, googleProvider);
       const fbUser = result.user;
       const userData: AdminUser = {
@@ -184,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.location.replace('/dashboard');
       }
     } catch (error: any) {
-      console.warn('Popup sign in failed, falling back to redirect:', error);
+      console.warn('Popup sign in failed, trying redirect:', error);
 
       if (
         error.code === 'auth/popup-blocked' ||

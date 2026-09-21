@@ -1,5 +1,6 @@
 ---
 // src/layouts/BaseLayout.astro
+import { ClientRouter } from 'astro:transitions';
 import '../styles/globals.css';
 
 interface Props {
@@ -30,6 +31,9 @@ const {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Astro SPA Client Router for smooth, instant transitions without page reload -->
+    <ClientRouter />
   </head>
   <body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
     <slot />
