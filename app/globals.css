@@ -22,17 +22,43 @@
   }
 }
 
+/* ── Typography ─────────────────────────────────────────────────────────────── */
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Inter from Google Fonts with system fallback */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Custom scrollbars */
+/* ── GPU compositing for animated elements ──────────────────────────────────── */
+/* Prevent layout repaints for ping/pulse animations */
+.animate-ping,
+.animate-pulse,
+.animate-spin {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+/* Smooth hover transitions — use GPU layer */
+[class*="transition-"] {
+  backface-visibility: hidden;
+}
+
+/* ── Content-visibility for off-screen page sections ─────────────────────────
+   Skips rendering off-screen content entirely, cutting paint time in half
+   on long pages (sales list, product catalog, etc.)                           */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px; /* Estimated height */
+}
+
+/* ── Custom scrollbars ──────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -40,10 +66,46 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
+  background: rgba(100, 116, 139, 0.55);
+}
+
+/* ── Shimmer animation for skeleton cards ───────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Mobile-specific performance ────────────────────────────────────────────── */
+/* Prevent 300ms tap delay on mobile */
+* {
+  touch-action: manipulation;
+}
+
+/* Prevent font flash */
+html {
+  font-display: swap;
+}
+
+/* Prevent overscroll rubber-band on iOS that can cause jank */
+body {
+  overscroll-behavior: none;
+}
+
+/* ── Reduce motion for accessibility & perf ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-ping,
+  .animate-pulse,
+  .animate-spin,
+  .animate-bounce {
+    animation: none !important;
+  }
+
+  [class*="transition-"] {
+    transition: none !important;
+  }
 }

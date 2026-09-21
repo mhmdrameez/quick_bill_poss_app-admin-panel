@@ -2,35 +2,31 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/layout/Header';
 import { CurrencyDisplay } from '@/components/common/CurrencyDisplay';
+import { PageSkeleton } from '@/components/common/SkeletonCard';
 import { useSales } from '@/hooks/useSales';
 import { useProducts } from '@/hooks/useProducts';
 import { useCoupons } from '@/hooks/useCoupons';
 import {
   TrendingUp,
-  Download,
   Users,
-  CreditCard,
   Tag,
   Package,
-  ArrowUpRight,
-  Phone,
-  Calendar,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-} from 'recharts';
+
+// ── Dynamic recharts imports (NOT in initial bundle) ──────────────────────────
+const AnalyticsBarChart = dynamic(() => import('@/components/charts/AnalyticsBarChart'), {
+  ssr: false,
+  loading: () => <div className="h-72 animate-pulse bg-slate-800/50 rounded-xl" />,
+});
+const AnalyticsPieChart = dynamic(() => import('@/components/charts/PaymentPieChart'), {
+  ssr: false,
+  loading: () => <div className="h-44 animate-pulse bg-slate-800/50 rounded-xl" />,
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 
 export default function AnalyticsPage() {
   const { sales, loading: loadingSales } = useSales();
@@ -146,6 +142,8 @@ export default function AnalyticsPage() {
     };
   }, [sales]);
 
+  const isLoading = loadingSales || loadingProducts;
+
   return (
     <div className="flex-1 flex flex-col">
       <Header
@@ -153,6 +151,9 @@ export default function AnalyticsPage() {
         subtitle="Revenue trajectories, customer loyalty, category mix, and payment intelligence"
       />
 
+      {isLoading ? (
+        <PageSkeleton rows={8} cols={4} />
+      ) : (
       <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl w-full mx-auto">
         {/* Analytics Tabs - Responsive Horizontal Scroll on mobile */}
         <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto max-w-full">
@@ -206,36 +207,13 @@ export default function AnalyticsPage() {
         {activeTab === 'revenue' && (
           <div className="space-y-6">
             <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
-              <h3 className="text-base font-bold text-white">Daily Sales Volume</h3>
-              <p className="text-xs text-slate-400">Order count and revenue across recent transactions</p>
-
-              <div className="h-72 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={productAnalytics.topSellers.slice(0, 7)}
-                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                  >
-                    <XAxis
-                      dataKey="name"
-                      stroke="#64748B"
-                      fontSize={11}
-                      tickLine={false}
-                    />
-                    <YAxis stroke="#64748B" fontSize={11} tickFormatter={(v) => `₹${v}`} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#0F172A',
-                        borderColor: '#334155',
-                        borderRadius: '12px',
-                        color: '#fff',
-                        fontSize: '12px',
-                      }}
-                      formatter={(val: any) => [`₹${val}`, 'Revenue']}
-                    />
-                    <Bar dataKey="revenueRupees" fill="#6366F1" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <h3 className="text-base font-bold text-white">Top Products by Revenue</h3>
+              <p className="text-xs text-slate-400">Revenue breakdown for best-performing catalog items</p>
+              <AnalyticsBarChart
+                data={productAnalytics.topSellers.slice(0, 7).map((s) => ({ label: s.name.split(' ').slice(0, 2).join(' '), value: s.revenueRupees }))}
+                valuePrefix="₹"
+                height={280}
+              />
             </div>
           </div>
         )}
@@ -268,32 +246,7 @@ export default function AnalyticsPage() {
               {/* Category Breakdown Donut */}
               <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
                 <h3 className="text-sm font-bold text-white">Revenue by Category</h3>
-                <div className="h-44">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={productAnalytics.categoryData}
-                        innerRadius={40}
-                        outerRadius={65}
-                        paddingAngle={4}
-                        dataKey="value"
-                      >
-                        {productAnalytics.categoryData.map((entry, idx) => (
-                          <Cell key={`cell-${idx}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#0F172A',
-                          borderColor: '#334155',
-                          borderRadius: '10px',
-                          color: '#fff',
-                          fontSize: '11px',
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
+                <AnalyticsPieChart data={productAnalytics.categoryData.map((c) => ({ ...c, count: 1 }))} />
                 <div className="space-y-1.5 text-xs">
                   {productAnalytics.categoryData.map((cat) => (
                     <div key={cat.name} className="flex justify-between items-center text-slate-300">
@@ -441,6 +394,7 @@ export default function AnalyticsPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

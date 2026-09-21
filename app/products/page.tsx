@@ -7,6 +7,7 @@ import { CurrencyDisplay } from '@/components/common/CurrencyDisplay';
 import { ProductModal } from '@/components/products/ProductModal';
 import { BulkImportModal } from '@/components/products/BulkImportModal';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { PageSkeleton } from '@/components/common/SkeletonCard';
 import { useProducts } from '@/hooks/useProducts';
 import { Product } from '@/lib/types';
 import { formatRelativeTime } from '@/lib/dates';
@@ -97,6 +98,10 @@ export default function ProductsPage() {
 
   return (
     <div className="flex-1 flex flex-col w-full">
+      {loading ? (
+        <PageSkeleton rows={10} cols={5} />
+      ) : (
+      <>
       <Header
         title="Product Catalog"
         subtitle="Manage inventory, prices, barcodes, and real-time syncing to POS devices"
@@ -291,6 +296,8 @@ export default function ProductsPage() {
         confirmText="Delete Product"
         isDanger
       />
+      </>
+      )}
     </div>
   );
 }

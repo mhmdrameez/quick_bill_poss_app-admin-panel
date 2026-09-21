@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { CurrencyDisplay } from '@/components/common/CurrencyDisplay';
 import { StatusBadge } from '@/components/common/StatusBadge';
 import { PaymentBadge } from '@/components/common/PaymentBadge';
+import { PageSkeleton } from '@/components/common/SkeletonCard';
 import { SaleDetailDrawer } from '@/components/sales/SaleDetailDrawer';
 import { EditSaleModal } from '@/components/sales/EditSaleModal';
 import { CancelConfirmDialog } from '@/components/sales/CancelConfirmDialog';
@@ -122,6 +123,10 @@ export default function SalesPage() {
 
   return (
     <div className="flex-1 flex flex-col w-full">
+      {loading ? (
+        <PageSkeleton rows={10} cols={6} />
+      ) : (
+      <>
       <Header
         title="Transaction History"
         subtitle="Search, filter, edit bills, and inspect immutable audit logs"
@@ -401,6 +406,9 @@ export default function SalesPage() {
           await cancelSale(id, reason);
         }}
       />
+      </>
+      )}
     </div>
   );
 }
+
