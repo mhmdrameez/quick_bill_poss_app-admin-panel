@@ -11,6 +11,8 @@ A modern, real-time **Next.js Web Application** serving as the centralized manag
 - **Integer Currency Law**: All currency values are stored as integer paise (`₹1.00 = 100 paise`), eliminating floating-point rounding errors across web and POS terminals.
 - **Immutable Audit Trail**: All bill edits and cancellations automatically append immutable audit event sub-documents (`audit_events/{id}`).
 - **Sync Reconciliation Metadata**: Writes include `_rev`, `_lastOpId`, `_lastModifiedBy = 'ADMIN_WEB'`, and `_serverUpdatedAt` to preserve conflict-free offline/online syncing.
+- **Installable Progressive Web App (PWA)**: Full offline service worker caching (`sw.js`), web manifest with quick shortcuts, desktop & mobile install prompts, and standalone display mode.
+- **Maximum SEO Optimization**: Dynamic `sitemap.xml`, `robots.txt`, OpenGraph & Twitter Card social previews, Apple touch icons, and rich Schema.org `WebApplication` JSON-LD markup.
 - **Built-in Demo Mode**: Instant one-click demo access for local testing and presentation without prior Firebase credentials.
 
 ---
