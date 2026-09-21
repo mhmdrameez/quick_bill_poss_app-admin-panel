@@ -15,17 +15,14 @@ import { CompletedSale, TimeRange } from '@/lib/types';
 import { getDateRangeTimestamps, formatDateTime } from '@/lib/dates';
 import {
   Search,
-  Filter,
   Eye,
   Edit,
   Ban,
   Download,
-  Calendar,
-  Sparkles,
 } from 'lucide-react';
 
 export default function SalesPage() {
-  const { sales, loading, isLive, getSaleAuditEvents, editSale, cancelSale } = useSales();
+  const { sales, loading, getSaleAuditEvents, editSale, cancelSale } = useSales();
   const { products } = useProducts();
 
   // Filters State
@@ -49,22 +46,10 @@ export default function SalesPage() {
 
     return sales
       .filter((sale) => {
-        // Time filter
-        if (sale.completedAt < startTime || sale.completedAt > endTime) {
-          return false;
-        }
+        if (sale.completedAt < startTime || sale.completedAt > endTime) return false;
+        if (statusFilter !== 'all' && sale.status !== statusFilter) return false;
+        if (paymentFilter !== 'all' && (sale.paymentMethod || '').toLowerCase() !== paymentFilter) return false;
 
-        // Status filter
-        if (statusFilter !== 'all' && sale.status !== statusFilter) {
-          return false;
-        }
-
-        // Payment method filter
-        if (paymentFilter !== 'all' && (sale.paymentMethod || '').toLowerCase() !== paymentFilter) {
-          return false;
-        }
-
-        // Search query (invoice #, customer name, phone)
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const matchInvoice = sale.invoiceNumber.toLowerCase().includes(q);
@@ -72,10 +57,7 @@ export default function SalesPage() {
           const matchName = (sale.customer?.name || '').toLowerCase().includes(q);
           const matchPhone = (sale.customer?.phone || '').toLowerCase().includes(q);
           const matchItem = (sale.items || []).some((item) => item.name.toLowerCase().includes(q));
-
-          if (!matchInvoice && !matchOrder && !matchName && !matchPhone && !matchItem) {
-            return false;
-          }
+          if (!matchInvoice && !matchOrder && !matchName && !matchPhone && !matchItem) return false;
         }
 
         return true;
@@ -139,32 +121,32 @@ export default function SalesPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col w-full">
       <Header
         title="Transaction History"
         subtitle="Search, filter, edit bills, and inspect immutable audit logs"
         action={
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
+            <span className="hidden sm:inline">Export CSV</span>
           </button>
         }
       />
 
-      <div className="flex-1 p-6 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl w-full mx-auto">
         {/* Top Filter Bar */}
-        <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
+        <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-3 sm:space-y-4">
           {/* Time range buttons */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-800/80 rounded-xl border border-slate-700/60">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-1 p-1 bg-slate-800/80 rounded-xl border border-slate-700/60 overflow-x-auto max-w-full">
               {(['today', 'yesterday', '7d', '30d', 'custom'] as TimeRange[]).map((range) => (
                 <button
                   key={range}
                   onClick={() => setSelectedRange(range)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all ${
                     selectedRange === range
                       ? 'bg-indigo-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-slate-200'
@@ -175,95 +157,92 @@ export default function SalesPage() {
                     : range === 'yesterday'
                     ? 'Yesterday'
                     : range === '7d'
-                    ? 'Last 7 Days'
+                    ? '7 Days'
                     : range === '30d'
-                    ? 'Last 30 Days'
-                    : 'Custom Range'}
+                    ? '30 Days'
+                    : 'Custom'}
                 </button>
               ))}
             </div>
 
-            {/* Summary Pill for filtered view */}
-            <div className="flex items-center gap-4 text-xs font-medium px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-800">
+            {/* Summary Pill */}
+            <div className="flex items-center justify-between sm:justify-start gap-3 text-xs font-medium px-3.5 py-1.5 rounded-xl bg-slate-800/50 border border-slate-800">
               <span className="text-slate-400">
-                Filtered Sales: <strong className="text-white">{viewSummary.count}</strong>
+                Count: <strong className="text-white">{viewSummary.count}</strong>
               </span>
               <span className="text-slate-400">
-                Total Revenue:{' '}
-                <CurrencyDisplay paise={viewSummary.totalPaise} weight="bold" />
+                Total: <CurrencyDisplay paise={viewSummary.totalPaise} weight="bold" size="sm" />
               </span>
             </div>
           </div>
 
-          {/* Custom Date Picker row if 'custom' selected */}
+          {/* Custom Date Picker row */}
           {selectedRange === 'custom' && (
-            <div className="flex items-center gap-3 pt-2 text-xs">
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
               <span className="text-slate-400">From:</span>
               <input
                 type="date"
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
-                className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white font-medium"
+                className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-lg text-white font-medium text-xs"
               />
               <span className="text-slate-400">To:</span>
               <input
                 type="date"
                 value={customEnd}
                 onChange={(e) => setCustomEnd(e.target.value)}
-                className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white font-medium"
+                className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-lg text-white font-medium text-xs"
               />
             </div>
           )}
 
-          {/* Search and Dropdowns Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
-            {/* Search Input */}
+          {/* Search and Dropdowns */}
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-3 pt-1">
             <div className="sm:col-span-5 relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search invoice #, customer name, phone, item..."
+                placeholder="Search invoice, customer, phone..."
                 className="w-full pl-9 pr-3 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             </div>
 
-            {/* Status Dropdown */}
-            <div className="sm:col-span-2">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
-              >
-                <option value="all">Status: All</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="draft">Draft</option>
-              </select>
+            <div className="grid grid-cols-2 sm:contents gap-2">
+              <div className="sm:col-span-2">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-2.5 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
+                >
+                  <option value="all">Status: All</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <select
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                  className="w-full px-2.5 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
+                >
+                  <option value="all">Payment: All</option>
+                  <option value="cash">Cash</option>
+                  <option value="upi">UPI</option>
+                  <option value="card">Card</option>
+                  <option value="split">Split</option>
+                </select>
+              </div>
             </div>
 
-            {/* Payment Dropdown */}
-            <div className="sm:col-span-2">
-              <select
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
-              >
-                <option value="all">Payment: All</option>
-                <option value="cash">Cash</option>
-                <option value="upi">UPI</option>
-                <option value="card">Card</option>
-                <option value="split">Split</option>
-              </select>
-            </div>
-
-            {/* Sort Dropdown */}
             <div className="sm:col-span-3">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="w-full px-3 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
+                className="w-full px-2.5 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
               >
                 <option value="newest">Sort: Newest First</option>
                 <option value="oldest">Sort: Oldest First</option>
@@ -274,10 +253,10 @@ export default function SalesPage() {
           </div>
         </div>
 
-        {/* Transactions Table */}
+        {/* Transactions Table / Responsive Wrapper */}
         <div className="rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[700px]">
               <thead className="bg-slate-800/80 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="py-3.5 px-4">Invoice #</th>
@@ -285,24 +264,22 @@ export default function SalesPage() {
                   <th className="py-3.5 px-4">Customer</th>
                   <th className="py-3.5 px-4">Items</th>
                   <th className="py-3.5 px-4">Subtotal</th>
-                  <th className="py-3.5 px-4">Discount</th>
                   <th className="py-3.5 px-4">Grand Total</th>
                   <th className="py-3.5 px-4">Payment</th>
                   <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Register</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {loading ? (
                   <tr>
-                    <td colSpan={11} className="py-12 text-center text-slate-500">
+                    <td colSpan={9} className="py-12 text-center text-slate-500">
                       Loading transactions...
                     </td>
                   </tr>
                 ) : filteredSales.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="py-12 text-center text-slate-500">
+                    <td colSpan={9} className="py-12 text-center text-slate-500">
                       No transactions found matching your criteria.
                     </td>
                   </tr>
@@ -316,11 +293,11 @@ export default function SalesPage() {
                       <td className="py-3 px-4 font-bold text-indigo-400">
                         {sale.invoiceNumber}
                       </td>
-                      <td className="py-3 px-4 text-slate-400 whitespace-nowrap">
+                      <td className="py-3 px-4 text-slate-400 whitespace-nowrap text-[11px]">
                         {formatDateTime(sale.completedAt)}
                       </td>
                       <td className="py-3 px-4">
-                        <div className="font-medium text-white">
+                        <div className="font-medium text-white truncate max-w-[120px]">
                           {sale.customer?.name || 'Walk-in'}
                         </div>
                         {sale.customer?.phone && (
@@ -328,19 +305,12 @@ export default function SalesPage() {
                         )}
                       </td>
                       <td className="py-3 px-4 text-slate-300 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-medium">
+                        <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-medium text-[11px]">
                           {sale.items?.length || 0} items
                         </span>
                       </td>
                       <td className="py-3 px-4 text-slate-300">
                         <CurrencyDisplay paise={sale.subtotalPaise} size="sm" weight="normal" />
-                      </td>
-                      <td className="py-3 px-4">
-                        {sale.discountPaise > 0 ? (
-                          <CurrencyDisplay paise={sale.discountPaise} size="sm" negative weight="medium" />
-                        ) : (
-                          <span className="text-slate-600">—</span>
-                        )}
                       </td>
                       <td className="py-3 px-4">
                         <CurrencyDisplay paise={sale.grandTotalPaise} size="sm" weight="bold" />
@@ -350,9 +320,6 @@ export default function SalesPage() {
                       </td>
                       <td className="py-3 px-4">
                         <StatusBadge status={sale.status} size="sm" />
-                      </td>
-                      <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">
-                        {sale.registerCode || 'REG-A'}
                       </td>
                       <td
                         className="py-3 px-4 text-right"

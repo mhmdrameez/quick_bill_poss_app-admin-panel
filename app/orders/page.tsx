@@ -31,7 +31,7 @@ export default function HeldOrdersPage() {
         subtitle="Manage in-progress orders parked on counter POS terminals"
       />
 
-      <div className="flex-1 p-6 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl w-full mx-auto">
         <div className="flex items-center justify-between">
           <div className="text-xs text-slate-400 font-medium">
             Currently Held Orders: <strong className="text-white">{savedOrders.length}</strong>
@@ -44,7 +44,7 @@ export default function HeldOrdersPage() {
             Loading parked orders...
           </div>
         ) : savedOrders.length === 0 ? (
-          <div className="p-12 rounded-3xl bg-slate-900/60 border border-slate-800 text-center space-y-3">
+          <div className="p-8 sm:p-12 rounded-3xl bg-slate-900/60 border border-slate-800 text-center space-y-3">
             <ClipboardList className="w-10 h-10 text-slate-600 mx-auto" />
             <h3 className="text-base font-semibold text-white">No Held Orders Active</h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -52,7 +52,7 @@ export default function HeldOrdersPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {savedOrders.map((order) => (
               <div
                 key={order.id}

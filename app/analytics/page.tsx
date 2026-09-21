@@ -153,12 +153,12 @@ export default function AnalyticsPage() {
         subtitle="Revenue trajectories, customer loyalty, category mix, and payment intelligence"
       />
 
-      <div className="flex-1 p-6 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
-        {/* Analytics Tabs */}
-        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl w-fit">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl w-full mx-auto">
+        {/* Analytics Tabs - Responsive Horizontal Scroll on mobile */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto max-w-full">
           <button
             onClick={() => setActiveTab('revenue')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'revenue'
                 ? 'bg-indigo-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
@@ -370,7 +370,7 @@ export default function AnalyticsPage() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-left text-xs min-w-[500px]">
                   <thead className="bg-slate-800/80 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[10px]">
                     <tr>
                       <th className="py-3 px-4">Customer Name</th>

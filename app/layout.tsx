@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { MobileNav } from '@/components/layout/MobileNav';
 import { PwaInstallPrompt } from '@/components/pwa/PwaInstallPrompt';
 import { JsonLd } from '@/components/seo/JsonLd';
 
@@ -112,10 +113,11 @@ export default function RootLayout({
           <AuthGuard>
             <div className="flex w-full min-h-screen flex-1">
               <Sidebar />
-              <main className="flex-1 min-w-0 flex flex-col bg-slate-950 overflow-x-hidden">
+              <main className="flex-1 min-w-0 flex flex-col bg-slate-950 overflow-x-hidden pb-20 lg:pb-0">
                 {children}
               </main>
             </div>
+            <MobileNav />
             <PwaInstallPrompt />
           </AuthGuard>
         </AuthProvider>

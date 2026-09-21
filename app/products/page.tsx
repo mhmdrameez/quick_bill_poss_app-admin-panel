@@ -15,12 +15,9 @@ import {
   Upload,
   Search,
   Package,
-  Barcode,
-  Layers,
   Edit,
   Trash2,
   AlertTriangle,
-  Sparkles,
 } from 'lucide-react';
 
 export default function ProductsPage() {
@@ -99,33 +96,33 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col w-full">
       <Header
         title="Product Catalog"
         subtitle="Manage inventory, prices, barcodes, and real-time syncing to POS devices"
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => setIsBulkOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-colors"
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>Bulk CSV</span>
+              <span className="hidden sm:inline">Bulk CSV</span>
             </button>
             <button
               onClick={handleOpenAdd}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/30 transition-colors"
+              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/30 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Product</span>
+              <span>Add</span>
             </button>
           </div>
         }
       />
 
-      <div className="flex-1 p-6 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl w-full mx-auto">
         {/* Controls & Search */}
-        <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
           <div className="relative w-full sm:w-80">
             <input
               type="text"
@@ -137,12 +134,11 @@ export default function ProductsPage() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            {/* Category Dropdown */}
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
+              className="px-2.5 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
             >
               <option value="all">All Categories</option>
               {existingCategories.map((cat) => (
@@ -152,27 +148,22 @@ export default function ProductsPage() {
               ))}
             </select>
 
-            {/* Stock status filter */}
             <select
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value as any)}
-              className="px-3 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
+              className="px-2.5 py-2 text-xs bg-slate-850 dark:bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none"
             >
               <option value="all">Stock: All Units</option>
-              <option value="low">Low Stock (&lt;10)</option>
+              <option value="low">Low (&lt;10)</option>
               <option value="out">Out of Stock (0)</option>
             </select>
-
-            <div className="text-xs text-slate-400 px-2 font-medium">
-              Total: <strong className="text-white">{filteredProducts.length}</strong>
-            </div>
           </div>
         </div>
 
         {/* Products Table */}
         <div className="rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[650px]">
               <thead className="bg-slate-800/80 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="py-3.5 px-4">Product Name</th>
@@ -194,7 +185,7 @@ export default function ProductsPage() {
                 ) : filteredProducts.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-slate-500">
-                      No products found. Click "Add Product" or "Bulk CSV" to add items.
+                      No products found. Click "Add" or "Bulk CSV" to add items.
                     </td>
                   </tr>
                 ) : (

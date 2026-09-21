@@ -18,7 +18,7 @@ export default function DevicesPage() {
         subtitle="Live monitoring of active POS register terminals and lease epochs"
       />
 
-      <div className="flex-1 p-6 sm:p-8 space-y-6 max-w-7xl w-full mx-auto">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl w-full mx-auto">
         {/* Read-Only Notice Banner */}
         <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/60 flex items-start gap-3.5 text-indigo-300 text-xs leading-relaxed">
           <ShieldAlert className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
@@ -35,7 +35,7 @@ export default function DevicesPage() {
         {/* Registers Table */}
         <div className="rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[700px]">
               <thead className="bg-slate-800/80 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="py-3.5 px-4">Register Code</th>

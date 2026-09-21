@@ -2,7 +2,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -18,7 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-const navigationItems = [
+export const navigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Transactions', href: '/sales', icon: Receipt },
   { name: 'Products', href: '/products', icon: Package },
@@ -36,7 +35,7 @@ export const Sidebar: React.FC = () => {
   if (pathname === '/login') return null;
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 text-slate-300 flex flex-col justify-between shrink-0 select-none">
+    <aside className="hidden lg:flex w-64 bg-slate-900 border-r border-slate-800 text-slate-300 flex-col justify-between shrink-0 select-none sticky top-0 h-screen">
       {/* Brand Header */}
       <div>
         <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-800/80">
@@ -64,7 +63,7 @@ export const Sidebar: React.FC = () => {
                 href={item.href}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-semibold'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                 }`}
               >

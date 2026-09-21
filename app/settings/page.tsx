@@ -40,12 +40,12 @@ export default function SettingsPage() {
         subtitle="Manage business credentials, GSTIN, tax rates, and live receipt template"
       />
 
-      <div className="flex-1 p-6 sm:p-8 max-w-7xl w-full mx-auto">
-        <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Left Form Column (7 cols) */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-4 sm:space-y-6">
             {/* General Business Information */}
-            <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
+            <div className="p-4 sm:p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
               <div className="flex items-center gap-2.5 pb-2 border-b border-slate-800">
                 <Store className="w-4 h-4 text-indigo-400" />
                 <h3 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -264,7 +264,7 @@ export default function SettingsPage() {
 
           {/* Right Column: Thermal Receipt Mockup Preview (5 cols) */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="sticky top-24">
+            <div className="lg:sticky lg:top-24">
               <div className="flex items-center justify-between pb-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Live Thermal Receipt Preview
