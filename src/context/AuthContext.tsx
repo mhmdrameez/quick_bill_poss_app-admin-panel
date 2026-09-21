@@ -147,14 +147,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.removeItem('quickbill_demo_user');
 
-      // Detect mobile / webview environment
-      const isMobileOrApp =
+      // Detect mobile device environment for redirect vs desktop popup
+      const isMobile =
         typeof navigator !== 'undefined' &&
-        (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-          (window as any).navigator?.standalone ||
-          window.matchMedia('(display-mode: standalone)').matches);
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-      if (isMobileOrApp) {
+      if (isMobile) {
         await signInWithRedirect(auth, googleProvider);
         return;
       }

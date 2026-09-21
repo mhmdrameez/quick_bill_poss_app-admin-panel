@@ -24,8 +24,6 @@ const {
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#090d16" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,5 +35,36 @@ const {
   </head>
   <body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
     <slot />
+
+    <!-- Clean legacy caches & unregister any old Service Workers -->
+    <script is:inline>
+      (function () {
+        // 1. Unregister all Service Workers
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            for (var i = 0; i < registrations.length; i++) {
+              registrations[i].unregister();
+            }
+          }).catch(function () {});
+        }
+
+        // 2. Clear CacheStorage
+        if ('caches' in window) {
+          caches.keys().then(function (names) {
+            for (var i = 0; i < names.length; i++) {
+              caches.delete(names[i]);
+            }
+          }).catch(function () {});
+        }
+
+        // 3. Clean up stale legacy keys
+        try {
+          var staleKeys = ['__next', 'next-auth', '__NEXT_DATA__', 'qbpos_sw_reloaded'];
+          for (var i = 0; i < staleKeys.length; i++) {
+            localStorage.removeItem(staleKeys[i]);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </body>
 </html>
